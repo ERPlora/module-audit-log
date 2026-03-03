@@ -26,3 +26,13 @@ PERMISSIONS = [
     'audit_log.view_auditentry',
 'audit_log.manage_settings',
 ]
+
+ROLE_PERMISSIONS = {
+    "admin": ["*"],
+    "manager": [
+        "view_auditentry",
+    ],
+    "employee": [
+        "view_auditentry",
+    ],
+}
