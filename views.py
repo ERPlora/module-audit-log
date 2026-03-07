@@ -3,6 +3,8 @@ Audit Trail Module Views
 """
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
+from django.http import HttpResponse
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, render as django_render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -113,6 +115,7 @@ def audit_entries_list(request):
     }
 
 @login_required
+@htmx_view('audit_log/pages/audit_entry_add.html', 'audit_log/partials/audit_entry_add_content.html')
 def audit_entry_add(request):
     hub_id = request.session.get('hub_id')
     if request.method == 'POST':
@@ -132,10 +135,13 @@ def audit_entry_add(request):
         obj.ip_address = ip_address
         obj.details = details
         obj.save()
-        return _render_audit_entries_list(request, hub_id)
-    return django_render(request, 'audit_log/partials/panel_audit_entry_add.html', {})
+        response = HttpResponse(status=204)
+        response['HX-Redirect'] = reverse('audit_log:dashboard')
+        return response
+    return {}
 
 @login_required
+@htmx_view('audit_log/pages/audit_entry_edit.html', 'audit_log/partials/audit_entry_edit_content.html')
 def audit_entry_edit(request, pk):
     hub_id = request.session.get('hub_id')
     obj = get_object_or_404(AuditEntry, pk=pk, hub_id=hub_id, is_deleted=False)
@@ -149,7 +155,7 @@ def audit_entry_edit(request, pk):
         obj.details = request.POST.get('details', '').strip()
         obj.save()
         return _render_audit_entries_list(request, hub_id)
-    return django_render(request, 'audit_log/partials/panel_audit_entry_edit.html', {'obj': obj})
+    return {'obj': obj}
 
 @login_required
 @require_POST
